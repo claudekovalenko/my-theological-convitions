@@ -1,0 +1,445 @@
+<title>Conviction Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: two panes. Left, a stack of spectrum rows you set; right, a sticky ranked list of church families whose ranges can be overlaid on the spectra. */
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --fg: #1a2130;
+  --muted: #5b6577;
+  --line: #dde2ea;
+  --accent: #2b47a6;
+  --accent-soft: #e4e9f8;
+  --band: rgba(214, 150, 38, 0.32);
+  --band-edge: #b9811c;
+  --good: #2f7d4f;
+  --warn: #a8701a;
+  --bad: #b23b3b;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11141b; --surface: #181c25; --fg: #e5e8ee; --muted: #9aa3b3; --line: #2a303c;
+    --accent: #93a8ff; --accent-soft: #232b45; --band: rgba(224, 168, 69, 0.30); --band-edge: #e0a845;
+    --good: #6cc48f; --warn: #e0a845; --bad: #ec7a7a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11141b; --surface: #181c25; --fg: #e5e8ee; --muted: #9aa3b3; --line: #2a303c;
+  --accent: #93a8ff; --accent-soft: #232b45; --band: rgba(224, 168, 69, 0.30); --band-edge: #e0a845;
+  --good: #6cc48f; --warn: #e0a845; --bad: #ec7a7a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 64px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+header { display: grid; gap: 8px; margin-bottom: 28px; max-width: 68ch; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 5vw, 44px); line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+header p { margin: 0; color: var(--muted); }
+h2 { font-family: var(--display); font-weight: 700; font-size: 20px; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--display); font-weight: 500; font-size: 18px; margin: 0; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: start; }
+@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+.axes { display: grid; gap: 14px; min-width: 0; }
+.axis { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 14px; display: grid; gap: 10px; min-width: 0; }
+.axis.unsure .track-wrap { opacity: .45; }
+.axis-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: baseline; }
+.axis-meta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.poles { display: flex; justify-content: space-between; gap: 12px; font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.poles span:last-child { text-align: right; }
+.reading { font-size: 15px; min-height: 1.55em; }
+.reading b { font-weight: 600; }
+
+.track-wrap { position: relative; height: 32px; }
+.track { position: absolute; left: 0; right: 0; top: 14px; height: 4px; border-radius: 2px; background: var(--line); }
+.band { position: absolute; top: 6px; height: 20px; background: var(--band); border-left: 2px solid var(--band-edge); border-right: 2px solid var(--band-edge); border-radius: 3px; pointer-events: none; }
+.ticks { position: absolute; left: 0; right: 0; top: 10px; height: 12px; pointer-events: none; }
+.ticks i { position: absolute; width: 1px; height: 12px; background: var(--line); }
+input[type=range] { position: absolute; inset: 0; width: 100%; height: 32px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; }
+input[type=range]::-webkit-slider-runnable-track { height: 32px; background: transparent; }
+input[type=range]::-moz-range-track { height: 32px; background: transparent; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: 5px; border-radius: 50%; background: var(--accent); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--accent); }
+input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--accent); }
+input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.controls label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; color: var(--muted); background: transparent; border: 0; padding: 4px 9px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tag { font-family: var(--mono); font-size: 11px; padding: 2px 7px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
+
+details { border-top: 1px dashed var(--line); padding-top: 8px; }
+summary { cursor: pointer; font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.help { display: grid; gap: 10px; margin-top: 10px; font-size: 15px; }
+.help dl { margin: 0; display: grid; gap: 8px; }
+.help dt { font-family: var(--display); font-weight: 500; }
+.help dd { margin: 0; color: var(--muted); }
+.help .q { padding: 10px 12px; background: var(--accent-soft); border-radius: 6px; }
+
+aside { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); display: grid; gap: 14px; min-width: 0; }
+@media (max-width: 900px) { aside { position: static; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 12px; min-width: 0; }
+.panel p.note { margin: 0; font-size: 14px; color: var(--muted); }
+.matches { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.match { border-radius: 8px; border: 1px solid transparent; }
+.match > button { width: 100%; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; text-align: left; background: transparent; border: 0; padding: 8px; color: inherit; font: inherit; cursor: pointer; border-radius: 8px; }
+.match > button:hover { background: var(--accent-soft); }
+.match.active { border-color: var(--band-edge); background: var(--bg); }
+.score { font-family: var(--mono); font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; text-align: right; padding-top: 1px; }
+.mname { font-family: var(--display); font-weight: 500; font-size: 16px; line-height: 1.25; }
+.mconf { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.bar { height: 3px; border-radius: 2px; background: var(--line); margin-top: 6px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.detail { padding: 0 8px 12px 62px; display: grid; gap: 8px; font-size: 14px; }
+.detail p { margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--mono); font-size: 11px; padding: 2px 7px; border-radius: 4px; border: 1px solid currentColor; }
+.chip.good { color: var(--good); } .chip.warn { color: var(--warn); } .chip.bad { color: var(--bad); } .chip.open { color: var(--muted); border-style: dashed; }
+.legend { display: flex; gap: 8px; align-items: center; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.legend .sw { width: 22px; height: 12px; background: var(--band); border-left: 2px solid var(--band-edge); border-right: 2px solid var(--band-edge); border-radius: 2px; }
+
+.summary { font-size: 15px; white-space: pre-wrap; margin: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { font-family: var(--mono); font-size: 12px; padding: 7px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+.btn.primary { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+.status { font-family: var(--mono); font-size: 12px; color: var(--good); min-height: 1em; }
+textarea { width: 100%; min-height: 90px; font: inherit; font-size: 15px; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px; resize: vertical; }
+footer { margin-top: 36px; font-size: 14px; color: var(--muted); max-width: 72ch; }
+@media (prefers-reduced-motion: no-preference) { .bar i { transition: width .25s ease; } .band { transition: left .2s ease, width .2s ease; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Theological convictions · church fit</span>
+    <h1>Conviction Map</h1>
+    <p>Set where you land on each question. "In between" is a real answer here, and so is "not sure yet." The list on the right ranks church families by how well their teaching overlaps with yours. Tap a family to see its range drawn on each line.</p>
+  </header>
+
+  <div class="layout">
+    <main class="axes" id="axes"></main>
+
+    <aside>
+      <section class="panel" aria-labelledby="m-h">
+        <div class="row" style="justify-content:space-between;align-items:baseline">
+          <h2 id="m-h">Closest church families</h2>
+          <span class="legend"><span class="sw"></span>their range</span>
+        </div>
+        <p class="note" id="basis"></p>
+        <ol class="matches" id="matches"></ol>
+      </section>
+
+      <section class="panel" aria-labelledby="s-h">
+        <h2 id="s-h">Where I stand</h2>
+        <p class="summary" id="summary"></p>
+        <label for="notes" class="eyebrow">My notes</label>
+        <textarea id="notes" placeholder="Questions to ask a pastor, verses to study, churches to visit…"></textarea>
+        <div class="row">
+          <button class="btn primary" id="copy">Copy summary</button>
+          <button class="btn" id="reset">Reset to my starting answers</button>
+        </div>
+        <span class="status" id="status" role="status"></span>
+      </section>
+    </aside>
+  </div>
+
+  <footer>
+    Ranges describe what each family's confession and typical congregations teach. Individual churches vary a lot, especially among Baptists and non-denominational churches. Before joining, read the church's statement of faith and ask the pastor about the lines that matter most to you. Your answers are saved in this browser only.
+  </footer>
+</div>
+
+<script>
+const AXES = [
+  { id: "sot", title: "How salvation works", left: "Calvinist", right: "Arminian",
+    stops: [[0, "Calvinist: God chooses who will be saved, and His grace reliably brings them to faith"],
+            [30, "Leaning Reformed: God's choice is decisive, with some hesitation about the full system"],
+            [50, "In between: God initiates and you truly respond; you hold both without resolving it"],
+            [70, "Leaning Arminian: grace enables everyone, and people can accept or resist it"],
+            [100, "Arminian / Wesleyan: grace goes to all, and the human response is decisive"]],
+    help: [["Calvinist (Reformed)", "Election is unconditional. Christ's death secures the salvation of the elect. Grace cannot finally be resisted. Taught in the 1689 London Baptist and Westminster Confessions."],
+           ["The Baptist middle", "Many Southern Baptists say God's grace comes first and the sinner freely responds, and that the saved are eternally secure. This is sometimes called the \"Traditional\" Baptist view."],
+           ["Arminian (Wesleyan)", "Prevenient grace enables every person to believe. Election is based on God's foreknowledge. Grace can be resisted."]],
+    q: "When someone comes to faith, what was decisive: God's choice, their response, or do you hold both without needing to resolve it?" },
+  { id: "gender", title: "Men and women in leadership", left: "Complementarian", right: "Egalitarian",
+    stops: [[0, "Firmly complementarian: pastors and elders are men; women don't preach to the gathered church"],
+            [25, "Complementarian: the pastor/elder office is for men; women serve widely in other roles"],
+            [50, "Mixed: only the senior pastor or elder office is limited to men"],
+            [75, "Leaning egalitarian: women may preach and lead, with some hesitation about senior pastor"],
+            [100, "Egalitarian: every office, including senior pastor, is open to women"]],
+    help: [["Complementarian", "Men and women are equal in worth with different roles. The office of pastor or elder is for qualified men (1 Tim 2:12, 3:1–7). The Baptist Faith & Message 2000 takes this view."],
+           ["Egalitarian", "Gifting, not gender, determines who leads (Gal 3:28, Rom 16:1–7). Women may serve as pastors."]],
+    q: "Would it trouble you to hear a woman preach on a Sunday morning? To have a woman as senior pastor?" },
+  { id: "security", title: "Can a believer lose salvation?", left: "Eternally secure", right: "Can fall away",
+    stops: [[0, "Eternally secure: a true believer can never be lost"],
+            [35, "Secure, with warnings taken seriously: true believers will persevere"],
+            [55, "Unsettled: you take both the promises and the warnings at face value"],
+            [100, "Can fall away: a believer can turn away and be lost"]],
+    help: [["Eternal security / perseverance", "\"Once saved, always saved\" in Baptist preaching; \"perseverance of the saints\" in Reformed teaching (John 10:28–29)."],
+           ["Conditional security", "A believer who persistently turns from Christ can forfeit salvation (Heb 6:4–6). Held by Wesleyans, Free Will Baptists, Pentecostals and Lutherans."]],
+    q: "If someone who truly believed walks away from Christ for good, were they never saved, or did they lose salvation?" },
+  { id: "baptism", title: "Who should be baptized", left: "Believers only", right: "Infants too",
+    stops: [[0, "Believer's baptism only, by immersion"],
+            [30, "Believer's baptism, but you'd accept members baptized as infants"],
+            [60, "Either is valid; it's a matter of conscience"],
+            [100, "Infants of believers should be baptized"]],
+    help: [["Credobaptism", "Baptism follows a personal profession of faith. Most Baptist churches require immersion after conversion for membership."],
+           ["Paedobaptism", "Children of believers receive the sign of the covenant, as circumcision was given in Israel. Practiced by Presbyterians, Anglicans, Methodists and Lutherans."]],
+    q: "Would you be comfortable joining a church that baptizes babies, even if you'd never do it for your own child?" },
+  { id: "supper", title: "The Lord's Supper", left: "Memorial", right: "Real presence",
+    stops: [[0, "Memorial: a remembrance; the bread and cup are symbols"],
+            [40, "Spiritual presence: Christ is present by the Spirit and nourishes believers"],
+            [70, "Real presence, without defining how"],
+            [100, "Real presence: Christ's body and blood are truly in the bread and wine"]],
+    help: [["Memorial", "The Supper proclaims and remembers Christ's death. The standard Baptist view."],
+           ["Spiritual presence", "Calvin's view: believers truly feed on Christ by faith through the Spirit. Held by Presbyterians and Reformed Baptists."],
+           ["Real presence", "Christ's body and blood are present in, with and under the elements. Lutheran and many Anglican churches."]],
+    q: "Is communion mainly something you do (remember), or something God does to you through it?" },
+  { id: "polity", title: "Who makes the decisions", left: "Congregation", right: "Bishops",
+    stops: [[0, "Congregational: members vote on pastors, budget and membership"],
+            [35, "Elder-led: a team of elders leads, the congregation affirms big decisions"],
+            [55, "Presbyterian: elders govern, and regional bodies hold churches accountable"],
+            [80, "Connectional: pastors appointed or overseen by a wider denomination"],
+            [100, "Episcopal: bishops oversee pastors and congregations"]],
+    help: [["Congregational", "Each church governs itself, and the members are the final authority under Christ. Classic Baptist polity."],
+           ["Elder-led congregational", "Plural elders lead day to day; members still vote on elders, budget and discipline."],
+           ["Presbyterian", "Elders govern the local church and are accountable to a presbytery made up of elders from many churches."],
+           ["Episcopal", "Bishops ordain and oversee clergy across a region (Anglican, Methodist)."]],
+    q: "If a pastor fails morally, who should have the authority to remove him: the members, the church's elders, or leaders from outside the church?" },
+  { id: "gifts", title: "Spiritual gifts today", left: "Cessationist", right: "Continuationist",
+    stops: [[0, "Cessationist: tongues, prophecy and healing gifts ended with the apostles"],
+            [35, "Cautious: gifts may continue, but are rare and not part of gatherings"],
+            [65, "Open: all gifts continue, practiced in an orderly way"],
+            [100, "Charismatic / Pentecostal: all gifts expected and central in worship"]],
+    help: [["Cessationist", "The sign gifts authenticated the apostles and ended with them."],
+           ["Open but cautious", "Common in Baptist and non-denominational churches. Doesn't rule the gifts out, doesn't feature them."],
+           ["Continuationist", "All the gifts in 1 Corinthians 12–14 continue today. Pentecostals also teach a baptism in the Spirit after conversion."]],
+    q: "If someone spoke in tongues during a service at your church, would you be glad, uneasy, or concerned?" },
+  { id: "worship", title: "Shape of a Sunday", left: "Free & simple", right: "Liturgical",
+    stops: [[0, "Free: songs, prayer, sermon, and an informal order"],
+            [35, "Structured but free: a planned order, maybe a confession or creed"],
+            [65, "Liturgical leaning: responsive readings, creeds, church calendar"],
+            [100, "Full liturgy: set prayers, lectionary, weekly communion"]],
+    help: [["Free church", "The typical Baptist and evangelical service: worship set, announcements, prayer, sermon, invitation."],
+           ["Liturgical", "A historic order of service with written prayers and the church year (Anglican, Lutheran, some Presbyterian)."]],
+    q: "Does a written prayer read together feel like rich, shared worship to you, or like something that gets in the way?" }
+];
+
+const FAMILIES = [
+  { name: "Southern Baptist", conf: "Baptist Faith & Message 2000", note: "Your home tradition. The SBC includes both Calvinist and \"Traditional\" churches, so ask each church where it falls.",
+    r: { sot:[10,65], gender:[5,25], security:[0,15], baptism:[0,5], supper:[5,25], polity:[0,35], gifts:[10,45], worship:[5,40] } },
+  { name: "Reformed Baptist", conf: "1689 London Baptist Confession", note: "Baptist practice with fully Reformed theology and elder-led government.",
+    r: { sot:[0,10], gender:[0,15], security:[0,10], baptism:[0,5], supper:[25,45], polity:[25,40], gifts:[0,20], worship:[25,50] } },
+  { name: "Free Will Baptist", conf: "Free Will Baptist Treatise", note: "Baptist practice with Arminian theology, including that a believer can fall away.",
+    r: { sot:[80,95], gender:[5,25], security:[75,95], baptism:[0,5], supper:[5,25], polity:[0,20], gifts:[15,45], worship:[10,35] } },
+  { name: "American Baptist (ABCUSA)", conf: "Local church covenants", note: "Baptist polity and baptism, broader theology, ordains women as pastors.",
+    r: { sot:[35,75], gender:[70,100], security:[20,60], baptism:[0,10], supper:[10,30], polity:[0,20], gifts:[20,50], worship:[20,55] } },
+  { name: "Evangelical Free Church (EFCA)", conf: "EFCA Statement of Faith", note: "Deliberately leaves room on Calvinism vs. Arminianism and on baptism. Elders are typically men.",
+    r: { sot:[25,75], gender:[15,40], security:[10,50], baptism:[0,40], supper:[10,35], polity:[5,35], gifts:[25,60], worship:[10,40] } },
+  { name: "Non-denominational / Bible church", conf: "Church's own statement", note: "Wide variety. Often Baptist-like in practice with elder leadership. Read the statement of faith closely.",
+    r: { sot:[30,70], gender:[15,40], security:[0,30], baptism:[0,10], supper:[5,25], polity:[25,45], gifts:[20,60], worship:[0,30] } },
+  { name: "Calvary Chapel", conf: "Calvary Chapel Distinctives", note: "Expository teaching verse by verse. Explicitly takes a middle position between Calvinism and Arminianism. Pastor-led.",
+    r: { sot:[45,75], gender:[10,30], security:[25,60], baptism:[0,5], supper:[5,25], polity:[40,60], gifts:[45,75], worship:[0,20] } },
+  { name: "Christian & Missionary Alliance", conf: "C&MA Statement of Faith", note: "Christ-centered, missions-heavy, open to the gifts. Elders are men; women may serve in many ministry roles.",
+    r: { sot:[55,80], gender:[20,45], security:[35,70], baptism:[0,10], supper:[5,25], polity:[30,55], gifts:[45,75], worship:[10,35] } },
+  { name: "Reformed non-denominational (Acts 29 style)", conf: "Often TGC or Acts 29 confessions", note: "Calvinist, complementarian, elder-led, often open to the gifts.",
+    r: { sot:[0,20], gender:[0,20], security:[0,15], baptism:[0,20], supper:[20,45], polity:[25,45], gifts:[30,80], worship:[15,45] } },
+  { name: "Presbyterian (PCA)", conf: "Westminster Confession", note: "Fully Reformed, baptizes infants, governed by elders and presbyteries.",
+    r: { sot:[0,10], gender:[0,15], security:[0,10], baptism:[85,100], supper:[35,55], polity:[50,65], gifts:[5,30], worship:[35,70] } },
+  { name: "Anglican (ACNA)", conf: "39 Articles · Book of Common Prayer", note: "Liturgical worship led by bishops. Dioceses differ on ordaining women as priests.",
+    r: { sot:[25,60], gender:[15,70], security:[30,70], baptism:[90,100], supper:[55,80], polity:[85,100], gifts:[25,75], worship:[80,100] } },
+  { name: "Church of the Nazarene", conf: "Nazarene Articles of Faith", note: "Wesleyan holiness tradition. Ordains women. Practices both believer's and infant baptism.",
+    r: { sot:[90,100], gender:[75,100], security:[85,100], baptism:[40,70], supper:[25,45], polity:[55,75], gifts:[25,55], worship:[20,50] } },
+  { name: "Global Methodist", conf: "Wesleyan standards", note: "Traditional Wesleyan theology, connectional government, ordains women.",
+    r: { sot:[85,100], gender:[75,100], security:[80,100], baptism:[80,100], supper:[40,65], polity:[70,90], gifts:[25,55], worship:[45,75] } },
+  { name: "Assemblies of God", conf: "16 Fundamental Truths", note: "Pentecostal. Believer's baptism and expressive worship. Credentials women as ministers.",
+    r: { sot:[75,95], gender:[55,90], security:[70,95], baptism:[0,10], supper:[5,25], polity:[20,45], gifts:[90,100], worship:[0,20] } },
+  { name: "Lutheran (LCMS)", conf: "Book of Concord", note: "Liturgical, sacramental, infant baptism, real presence. Pastors are men.",
+    r: { sot:[20,40], gender:[0,10], security:[65,85], baptism:[95,100], supper:[90,100], polity:[35,55], gifts:[0,20], worship:[75,95] } }
+];
+
+// Starting answers from what you've said so far: Cradle Baptist, between Calvinist and Arminian, complementarian-leaning, unsure on polity.
+const START = {
+  sot:      { v: 50, unsure: false, w: 2 },
+  gender:   { v: 30, unsure: false, w: 2 },
+  security: { v: 15, unsure: true,  w: 2 },
+  baptism:  { v: 5,  unsure: false, w: 2 },
+  supper:   { v: 15, unsure: true,  w: 1 },
+  polity:   { v: 25, unsure: true,  w: 1 },
+  gifts:    { v: 35, unsure: true,  w: 2 },
+  worship:  { v: 25, unsure: true,  w: 1 }
+};
+const HINTS = {
+  baptism: "Pre-set from your Baptist upbringing",
+  security: "Most Baptist churches teach this end",
+  polity: "You said you're not sure yet"
+};
+const KEY = "conviction-map-v1";
+let state = load();
+let active = null;
+let open = null;
+
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.answers) return s; } catch (e) {}
+  return { answers: structuredClone(START), notes: "" };
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function describe(axis, v) {
+  let best = axis.stops[0];
+  for (const s of axis.stops) if (Math.abs(s[0] - v) < Math.abs(best[0] - v)) best = s;
+  return best[1];
+}
+
+function buildAxes() {
+  const root = $("#axes");
+  root.innerHTML = AXES.map(a => `
+    <section class="axis" id="ax-${a.id}" aria-labelledby="t-${a.id}">
+      <div class="axis-head">
+        <h3 id="t-${a.id}">${a.title}</h3>
+        <div class="axis-meta">${HINTS[a.id] ? `<span class="tag">${HINTS[a.id]}</span>` : ""}</div>
+      </div>
+      <div class="poles"><span>${a.left}</span><span>${a.right}</span></div>
+      <div class="track-wrap">
+        <div class="track"></div>
+        <div class="ticks">${[25, 50, 75].map(p => `<i style="left:${p}%"></i>`).join("")}</div>
+        <div class="band" hidden></div>
+        <input type="range" min="0" max="100" step="1" id="r-${a.id}" aria-label="${a.title}: ${a.left} to ${a.right}">
+      </div>
+      <div class="reading" id="read-${a.id}"></div>
+      <div class="controls">
+        <label><input type="checkbox" id="u-${a.id}"> Not sure yet</label>
+        <span>Matters to me
+          <span class="seg" role="group" aria-label="How much this matters">
+            ${["Low", "Some", "A lot"].map((t, i) => `<button type="button" data-w="${i + 1}">${t}</button>`).join("")}
+          </span>
+        </span>
+      </div>
+      <details>
+        <summary>Help me think about this</summary>
+        <div class="help">
+          <dl>${a.help.map(([t, d]) => `<div><dt>${t}</dt><dd>${d}</dd></div>`).join("")}</dl>
+          <div class="q">${a.q}</div>
+        </div>
+      </details>
+    </section>`).join("");
+
+  for (const a of AXES) {
+    const r = $("#r-" + a.id), u = $("#u-" + a.id), el = $("#ax-" + a.id);
+    r.addEventListener("input", () => {
+      const ans = state.answers[a.id];
+      ans.v = +r.value;
+      if (ans.unsure) { ans.unsure = false; u.checked = false; }
+      update();
+    });
+    u.addEventListener("change", () => { state.answers[a.id].unsure = u.checked; update(); });
+    el.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+      state.answers[a.id].w = +b.dataset.w; update();
+    }));
+  }
+}
+
+function dist(v, [lo, hi]) { return v < lo ? lo - v : v > hi ? v - hi : 0; }
+
+function rank() {
+  const set = AXES.filter(a => !state.answers[a.id].unsure);
+  return FAMILIES.map(f => {
+    let tw = 0, td = 0;
+    const per = AXES.map(a => {
+      const ans = state.answers[a.id];
+      if (ans.unsure) return { a, kind: "open" };
+      const d = dist(ans.v, f.r[a.id]);
+      tw += ans.w; td += ans.w * Math.min(d, 60) / 60;
+      return { a, d, kind: d <= 10 ? "good" : d <= 30 ? "warn" : "bad" };
+    });
+    const score = tw ? Math.round(100 * (1 - td / tw)) : 0;
+    return { f, score, per };
+  }).sort((x, y) => y.score - x.score || x.f.name.localeCompare(y.f.name)).map(x => ({ ...x, setCount: set.length }));
+}
+
+function update() {
+  for (const a of AXES) {
+    const ans = state.answers[a.id], el = $("#ax-" + a.id);
+    $("#r-" + a.id).value = ans.v;
+    $("#u-" + a.id).checked = ans.unsure;
+    el.classList.toggle("unsure", ans.unsure);
+    $("#read-" + a.id).innerHTML = ans.unsure ? `<span style="color:var(--muted)">Not sure yet. Drag the marker when you have a sense of it.</span>` : esc(describe(a, ans.v));
+    el.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.w === ans.w)));
+    const band = $(".band", el);
+    if (active) {
+      const [lo, hi] = active.r[a.id];
+      band.hidden = false; band.style.left = lo + "%"; band.style.width = Math.max(hi - lo, 1.5) + "%";
+    } else band.hidden = true;
+  }
+
+  const ranked = rank();
+  const n = ranked[0].setCount;
+  $("#basis").textContent = n === AXES.length
+    ? `Based on all ${n} questions, weighted by how much each matters to you.`
+    : `Based on the ${n} of ${AXES.length} questions you've answered. Fill in the rest to sharpen this.`;
+
+  $("#matches").innerHTML = ranked.slice(0, 8).map(({ f, score, per }) => {
+    const isOpen = open === f.name;
+    const chips = per.map(p => `<span class="chip ${p.kind}">${p.kind === "good" ? "✓" : p.kind === "warn" ? "~" : p.kind === "bad" ? "✕" : "?"} ${p.a.title}</span>`).join("");
+    return `<li class="match${active && active.name === f.name ? " active" : ""}">
+      <button type="button" data-name="${esc(f.name)}" aria-expanded="${isOpen}">
+        <span class="score">${score}</span>
+        <span><span class="mname">${esc(f.name)}</span><br><span class="mconf">${esc(f.conf)}</span>
+          <span class="bar"><i style="width:${score}%"></i></span></span>
+      </button>
+      ${isOpen ? `<div class="detail"><p>${esc(f.note)}</p><div class="chips">${chips}</div></div>` : ""}
+    </li>`;
+  }).join("");
+  $("#matches").querySelectorAll(".match > button").forEach(b => b.addEventListener("click", () => {
+    const f = FAMILIES.find(x => x.name === b.dataset.name);
+    const same = active && active.name === f.name;
+    active = same ? null : f; open = same ? null : f.name;
+    update();
+  }));
+
+  $("#summary").textContent = summaryText(ranked);
+  save();
+}
+
+function summaryText(ranked) {
+  const lines = AXES.map(a => {
+    const ans = state.answers[a.id];
+    return `• ${a.title}: ${ans.unsure ? "not sure yet" : describe(a, ans.v).split(":")[0].toLowerCase()}${ans.w === 3 ? " (matters a lot)" : ""}`;
+  });
+  const top = ranked.slice(0, 3).map(r => `${r.f.name} (${r.score})`).join(", ");
+  return lines.join("\n") + `\n\nClosest fits: ${top}`;
+}
+
+$("#notes").value = state.notes || "";
+$("#notes").addEventListener("input", e => { state.notes = e.target.value; save(); });
+$("#copy").addEventListener("click", async () => {
+  let text = "My theological convictions\n\n" + $("#summary").textContent;
+  if (state.notes.trim()) text += "\n\nNotes:\n" + state.notes.trim();
+  try { await navigator.clipboard.writeText(text); flash("Copied"); }
+  catch (e) { const r = document.createRange(); r.selectNodeContents($("#summary")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); flash("Selected. Press Ctrl+C to copy."); }
+});
+let resetArmed = false;
+$("#reset").addEventListener("click", e => {
+  if (!resetArmed) { resetArmed = true; e.target.textContent = "Click again to reset"; setTimeout(() => { resetArmed = false; e.target.textContent = "Reset to my starting answers"; }, 3000); return; }
+  state.answers = structuredClone(START); resetArmed = false; e.target.textContent = "Reset to my starting answers"; update(); flash("Reset");
+});
+function flash(m) { $("#status").textContent = m; setTimeout(() => $("#status").textContent = "", 2500); }
+
+buildAxes();
+update();
+</script>
