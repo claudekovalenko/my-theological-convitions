@@ -1,6 +1,6 @@
 // Offline support for Conviction Map.
 // Bump VERSION whenever you change index.html so installed copies pick up the update.
-const VERSION = "v2";
+const VERSION = "v3";
 const CACHE = "conviction-map-" + VERSION;
 const CORE = [
   "./",

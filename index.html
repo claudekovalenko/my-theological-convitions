@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Conviction Map</title>
-<meta name="description" content="Set where you land on eight theological questions and see which church families fit best.">
+<meta name="description" content="Set where you land on thirteen theological questions and see which church families fit best.">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
@@ -261,40 +261,84 @@ const AXES = [
             [100, "Full liturgy: set prayers, lectionary, weekly communion"]],
     help: [["Free church", "The typical Baptist and evangelical service: worship set, announcements, prayer, sermon, invitation."],
            ["Liturgical", "A historic order of service with written prayers and the church year (Anglican, Lutheran, some Presbyterian)."]],
-    q: "Does a written prayer read together feel like rich, shared worship to you, or like something that gets in the way?" }
+    q: "Does a written prayer read together feel like rich, shared worship to you, or like something that gets in the way?" },
+  { id: "scripture", title: "How you view the Bible", left: "Inerrant", right: "Broader view",
+    stops: [[0, "Inerrant: without error in everything it affirms, including history and science"],
+            [25, "Inerrant, read with care for genre and original context"],
+            [55, "Infallible: fully trustworthy for faith and life, with less weight on every historical detail"],
+            [100, "Broader view: inspired witness to God, shaped by human authors and their limits"]],
+    help: [["Inerrancy", "Scripture in its original manuscripts is without error in all it teaches (Chicago Statement, 1978). Affirmed by the Baptist Faith & Message 2000."],
+           ["Infallibility", "Scripture never fails in its purpose of teaching salvation and godly living. Some who hold this allow for imprecision in incidental details."],
+           ["Broader views", "Scripture is God's word through human words, and some parts reflect the authors' own time. More common in mainline churches."]],
+    q: "If archaeology seemed to contradict a detail in Kings or Acts, would you assume our knowledge is incomplete, or that the Bible could be imprecise there?" },
+  { id: "endtimes", title: "End times", left: "Dispensational", right: "Amil / Postmil",
+    stops: [[0, "Dispensational premillennial: a rapture, a tribulation, then Christ's thousand-year reign"],
+            [35, "Historic premillennial: Christ returns after the tribulation, then reigns a thousand years"],
+            [70, "Amillennial: the thousand years is the present church age; Christ returns once to judge and renew"],
+            [100, "Postmillennial: the gospel will broadly triumph before Christ returns"]],
+    help: [["Dispensational", "God has distinct plans for Israel and the church. Pre-tribulation rapture. Popular in Bible churches, Calvary Chapel and many Baptist churches (Left Behind, Scofield Bible)."],
+           ["Historic premillennial", "A literal future reign of Christ on earth, without a separate rapture. Held by many early church fathers."],
+           ["Amillennial", "Revelation 20 describes Christ's reign now. Standard in Lutheran, Presbyterian, Anglican and Reformed churches."],
+           ["Postmillennial", "The kingdom grows through the gospel until most of the world is Christian, then Christ returns."]],
+    q: "Do you expect believers to be taken out before a seven-year tribulation, or the church to go through hard times until Christ returns?" },
+  { id: "creation", title: "Creation", left: "Young earth", right: "Evolutionary creation",
+    stops: [[0, "Young earth: six 24-hour days, about 6,000 to 10,000 years ago"],
+            [45, "Old earth: God created over long ages; Adam and Eve were specially created"],
+            [70, "Open: the days may be literary; you don't hold firmly to one model"],
+            [100, "Evolutionary creation: God created through evolution over billions of years"]],
+    help: [["Young earth", "Genesis 1 describes six ordinary days. Taught by Answers in Genesis and required in the LCMS."],
+           ["Old earth", "The earth is ancient, the \"days\" are long ages or a framework, and Adam and Eve were real, specially created people."],
+           ["Evolutionary creation", "God used evolution. Held by BioLogos and some Anglican, Methodist and Nazarene teachers."]],
+    q: "Would it unsettle you if your pastor said Genesis 1 doesn't settle the age of the earth?" },
+  { id: "marriage", title: "Marriage and sexuality", left: "Traditional", right: "Affirming",
+    stops: [[0, "Traditional: marriage is one man and one woman; sex is for marriage"],
+            [30, "Traditional, with room to differ on how a church welcomes and disciples LGBT people"],
+            [65, "Uncertain: Christians can disagree, and it shouldn't divide a church"],
+            [100, "Affirming: same-sex marriage is blessed and celebrated in the church"]],
+    help: [["Traditional", "Marriage is a covenant between a man and a woman (Gen 2:24, Matt 19:4–6). Held by every family on this list except some American Baptist churches."],
+           ["Affirming", "Faithful same-sex relationships can be holy. Held by mainline denominations such as the ELCA, the Episcopal Church and the United Methodist Church."]],
+    q: "Would you stay at a church that began performing same-sex weddings?" },
+  { id: "creeds", title: "Creeds and confessions", left: "Bible only", right: "Confessional",
+    stops: [[0, "Bible only: \"no creed but the Bible\"; the church writes nothing binding beyond Scripture"],
+            [30, "A short statement of faith, and respect for the Apostles' and Nicene Creeds"],
+            [65, "A full historic confession guides teaching and preaching"],
+            [100, "Confessional: pastors vow to a historic confession; it shapes the whole church's life"]],
+    help: [["Bible only", "Scripture is the only authority, and creeds can quietly take its place. Strong in Baptist, Restorationist and non-denominational churches."],
+           ["Confessional", "Scripture is the highest authority, and a detailed confession (Westminster, 1689, Book of Concord) is a faithful summary of it that holds pastors accountable."]],
+    q: "Should a pastor be bound to a written confession beyond the Bible, so members know exactly what will be taught?" }
 ];
 
 const FAMILIES = [
   { name: "Southern Baptist", conf: "Baptist Faith & Message 2000", note: "Your home tradition. The SBC includes both Calvinist and \"Traditional\" churches, so ask each church where it falls.",
-    r: { sot:[10,65], gender:[5,25], security:[0,15], baptism:[0,5], supper:[5,25], polity:[0,35], gifts:[10,45], worship:[5,40] } },
+    r: { sot:[10,65], gender:[5,25], security:[0,15], baptism:[0,5], supper:[5,25], polity:[0,35], gifts:[10,45], worship:[5,40], scripture:[0,15], endtimes:[0,60], creation:[0,60], marriage:[0,5], creeds:[15,45] } },
   { name: "Reformed Baptist", conf: "1689 London Baptist Confession", note: "Baptist practice with fully Reformed theology and elder-led government.",
-    r: { sot:[0,10], gender:[0,15], security:[0,10], baptism:[0,5], supper:[25,45], polity:[25,40], gifts:[0,20], worship:[25,50] } },
+    r: { sot:[0,10], gender:[0,15], security:[0,10], baptism:[0,5], supper:[25,45], polity:[25,40], gifts:[0,20], worship:[25,50], scripture:[0,10], endtimes:[30,90], creation:[0,50], marriage:[0,5], creeds:[75,95] } },
   { name: "Free Will Baptist", conf: "Free Will Baptist Treatise", note: "Baptist practice with Arminian theology, including that a believer can fall away.",
-    r: { sot:[80,95], gender:[5,25], security:[75,95], baptism:[0,5], supper:[5,25], polity:[0,20], gifts:[15,45], worship:[10,35] } },
+    r: { sot:[80,95], gender:[5,25], security:[75,95], baptism:[0,5], supper:[5,25], polity:[0,20], gifts:[15,45], worship:[10,35], scripture:[0,15], endtimes:[0,45], creation:[0,40], marriage:[0,5], creeds:[20,50] } },
   { name: "American Baptist (ABCUSA)", conf: "Local church covenants", note: "Baptist polity and baptism, broader theology, ordains women as pastors.",
-    r: { sot:[35,75], gender:[70,100], security:[20,60], baptism:[0,10], supper:[10,30], polity:[0,20], gifts:[20,50], worship:[20,55] } },
+    r: { sot:[35,75], gender:[70,100], security:[20,60], baptism:[0,10], supper:[10,30], polity:[0,20], gifts:[20,50], worship:[20,55], scripture:[20,80], endtimes:[20,80], creation:[30,100], marriage:[10,80], creeds:[0,30] } },
   { name: "Evangelical Free Church (EFCA)", conf: "EFCA Statement of Faith", note: "Deliberately leaves room on Calvinism vs. Arminianism and on baptism. Elders are typically men.",
-    r: { sot:[25,75], gender:[15,40], security:[10,50], baptism:[0,40], supper:[10,35], polity:[5,35], gifts:[25,60], worship:[10,40] } },
+    r: { sot:[25,75], gender:[15,40], security:[10,50], baptism:[0,40], supper:[10,35], polity:[5,35], gifts:[25,60], worship:[10,40], scripture:[0,15], endtimes:[0,75], creation:[10,70], marriage:[0,5], creeds:[20,45] } },
   { name: "Non-denominational / Bible church", conf: "Church's own statement", note: "Wide variety. Often Baptist-like in practice with elder leadership. Read the statement of faith closely.",
-    r: { sot:[30,70], gender:[15,40], security:[0,30], baptism:[0,10], supper:[5,25], polity:[25,45], gifts:[20,60], worship:[0,30] } },
+    r: { sot:[30,70], gender:[15,40], security:[0,30], baptism:[0,10], supper:[5,25], polity:[25,45], gifts:[20,60], worship:[0,30], scripture:[0,20], endtimes:[0,45], creation:[0,60], marriage:[0,15], creeds:[0,25] } },
   { name: "Calvary Chapel", conf: "Calvary Chapel Distinctives", note: "Expository teaching verse by verse. Explicitly takes a middle position between Calvinism and Arminianism. Pastor-led.",
-    r: { sot:[45,75], gender:[10,30], security:[25,60], baptism:[0,5], supper:[5,25], polity:[40,60], gifts:[45,75], worship:[0,20] } },
+    r: { sot:[45,75], gender:[10,30], security:[25,60], baptism:[0,5], supper:[5,25], polity:[40,60], gifts:[45,75], worship:[0,20], scripture:[0,10], endtimes:[0,15], creation:[0,40], marriage:[0,5], creeds:[0,20] } },
   { name: "Christian & Missionary Alliance", conf: "C&MA Statement of Faith", note: "Christ-centered, missions-heavy, open to the gifts. Elders are men; women may serve in many ministry roles.",
-    r: { sot:[55,80], gender:[20,45], security:[35,70], baptism:[0,10], supper:[5,25], polity:[30,55], gifts:[45,75], worship:[10,35] } },
+    r: { sot:[55,80], gender:[20,45], security:[35,70], baptism:[0,10], supper:[5,25], polity:[30,55], gifts:[45,75], worship:[10,35], scripture:[0,15], endtimes:[0,40], creation:[10,60], marriage:[0,5], creeds:[15,40] } },
   { name: "Reformed non-denominational (Acts 29 style)", conf: "Often TGC or Acts 29 confessions", note: "Calvinist, complementarian, elder-led, often open to the gifts.",
-    r: { sot:[0,20], gender:[0,20], security:[0,15], baptism:[0,20], supper:[20,45], polity:[25,45], gifts:[30,80], worship:[15,45] } },
+    r: { sot:[0,20], gender:[0,20], security:[0,15], baptism:[0,20], supper:[20,45], polity:[25,45], gifts:[30,80], worship:[15,45], scripture:[0,10], endtimes:[30,80], creation:[10,75], marriage:[0,5], creeds:[45,80] } },
   { name: "Presbyterian (PCA)", conf: "Westminster Confession", note: "Fully Reformed, baptizes infants, governed by elders and presbyteries.",
-    r: { sot:[0,10], gender:[0,15], security:[0,10], baptism:[85,100], supper:[35,55], polity:[50,65], gifts:[5,30], worship:[35,70] } },
+    r: { sot:[0,10], gender:[0,15], security:[0,10], baptism:[85,100], supper:[35,55], polity:[50,65], gifts:[5,30], worship:[35,70], scripture:[0,10], endtimes:[45,100], creation:[10,70], marriage:[0,5], creeds:[85,100] } },
   { name: "Anglican (ACNA)", conf: "39 Articles · Book of Common Prayer", note: "Liturgical worship led by bishops. Dioceses differ on ordaining women as priests.",
-    r: { sot:[25,60], gender:[15,70], security:[30,70], baptism:[90,100], supper:[55,80], polity:[85,100], gifts:[25,75], worship:[80,100] } },
+    r: { sot:[25,60], gender:[15,70], security:[30,70], baptism:[90,100], supper:[55,80], polity:[85,100], gifts:[25,75], worship:[80,100], scripture:[5,35], endtimes:[55,90], creation:[30,90], marriage:[0,10], creeds:[70,95] } },
   { name: "Church of the Nazarene", conf: "Nazarene Articles of Faith", note: "Wesleyan holiness tradition. Ordains women. Practices both believer's and infant baptism.",
-    r: { sot:[90,100], gender:[75,100], security:[85,100], baptism:[40,70], supper:[25,45], polity:[55,75], gifts:[25,55], worship:[20,50] } },
+    r: { sot:[90,100], gender:[75,100], security:[85,100], baptism:[40,70], supper:[25,45], polity:[55,75], gifts:[25,55], worship:[20,50], scripture:[10,45], endtimes:[25,75], creation:[30,90], marriage:[0,5], creeds:[30,60] } },
   { name: "Global Methodist", conf: "Wesleyan standards", note: "Traditional Wesleyan theology, connectional government, ordains women.",
-    r: { sot:[85,100], gender:[75,100], security:[80,100], baptism:[80,100], supper:[40,65], polity:[70,90], gifts:[25,55], worship:[45,75] } },
+    r: { sot:[85,100], gender:[75,100], security:[80,100], baptism:[80,100], supper:[40,65], polity:[70,90], gifts:[25,55], worship:[45,75], scripture:[10,45], endtimes:[45,85], creation:[30,90], marriage:[0,5], creeds:[45,75] } },
   { name: "Assemblies of God", conf: "16 Fundamental Truths", note: "Pentecostal. Believer's baptism and expressive worship. Credentials women as ministers.",
-    r: { sot:[75,95], gender:[55,90], security:[70,95], baptism:[0,10], supper:[5,25], polity:[20,45], gifts:[90,100], worship:[0,20] } },
+    r: { sot:[75,95], gender:[55,90], security:[70,95], baptism:[0,10], supper:[5,25], polity:[20,45], gifts:[90,100], worship:[0,20], scripture:[0,10], endtimes:[0,25], creation:[0,60], marriage:[0,5], creeds:[20,45] } },
   { name: "Lutheran (LCMS)", conf: "Book of Concord", note: "Liturgical, sacramental, infant baptism, real presence. Pastors are men.",
-    r: { sot:[20,40], gender:[0,10], security:[65,85], baptism:[95,100], supper:[90,100], polity:[35,55], gifts:[0,20], worship:[75,95] } }
+    r: { sot:[20,40], gender:[0,10], security:[65,85], baptism:[95,100], supper:[90,100], polity:[35,55], gifts:[0,20], worship:[75,95], scripture:[0,10], endtimes:[60,80], creation:[0,15], marriage:[0,5], creeds:[90,100] } }
 ];
 
 // Starting answers from what you've said so far: Cradle Baptist, between Calvinist and Arminian, complementarian-leaning, unsure on polity.
@@ -306,12 +350,18 @@ const START = {
   supper:   { v: 15, unsure: true,  w: 1 },
   polity:   { v: 25, unsure: true,  w: 1 },
   gifts:    { v: 35, unsure: true,  w: 2 },
-  worship:  { v: 25, unsure: true,  w: 1 }
+  worship:  { v: 25, unsure: true,  w: 1 },
+  scripture:{ v: 10, unsure: true,  w: 2 },
+  endtimes: { v: 30, unsure: true,  w: 1 },
+  creation: { v: 40, unsure: true,  w: 1 },
+  marriage: { v: 5,  unsure: true,  w: 2 },
+  creeds:   { v: 30, unsure: true,  w: 1 }
 };
 const HINTS = {
   baptism: "Pre-set from your Baptist upbringing",
   security: "Most Baptist churches teach this end",
-  polity: "You said you're not sure yet"
+  polity: "You said you're not sure yet",
+  scripture: "The Baptist Faith & Message holds this end"
 };
 const KEY = "conviction-map-v1";
 let state = load();
@@ -319,8 +369,13 @@ let active = null;
 let open = null;
 
 function load() {
-  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.answers) return s; } catch (e) {}
-  return { answers: structuredClone(START), notes: "" };
+  const fresh = { answers: structuredClone(START), notes: "" };
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    // Keep saved answers, and add any questions that are new since they were saved.
+    if (s && s.answers) return { notes: s.notes || "", answers: { ...fresh.answers, ...s.answers } };
+  } catch (e) {}
+  return fresh;
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 const $ = (s, el = document) => el.querySelector(s);

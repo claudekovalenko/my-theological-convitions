@@ -1,7 +1,7 @@
 {
   "name": "Conviction Map",
   "short_name": "Convictions",
-  "description": "Set where you land on eight theological questions and see which church families fit best.",
+  "description": "Set where you land on thirteen theological questions and see which church families fit best.",
   "start_url": "./",
   "scope": "./",
   "id": "./",

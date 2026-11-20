@@ -1,6 +1,6 @@
 # Conviction Map
 
-Set where you land on eight theological questions and see which church families fit best.
+Set where you land on thirteen theological questions and see which church families fit best.
 
 Live at **https://claudekovalenko.github.io/my-theological-convitions/** once GitHub Pages is on.
 
